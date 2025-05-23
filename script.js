@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const tomorrowStr = `${yyyy}-${mm}-${dd}`;
 
   // Set min date for the date input to tomorrow
-  const reservationDateInput = document.getElementById('reservation-date');
+  const reservationDateInput = document.getElementById('reservation_date');
   reservationDateInput.min = tomorrowStr;
   reservationDateInput.value = tomorrowStr;
   reservationDateInput.dispatchEvent(new Event('change'));
@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
   calendar.render();
 
   // Fetch vehicle categories from API and populate select
-  fetch('/api/vehicle-types')
+  fetch('http://localhost:8000/api/vehicle-types')
     .then(res => res.json())
     .then(data => {
-      const select = document.getElementById('vehicle-type-select');
+      const select = document.getElementById('vehicle_type_id');
       select.innerHTML = '<option value="">Select vehicle category</option>';
       data.forEach(type => {
         const option = document.createElement('option');
@@ -54,53 +54,51 @@ document.addEventListener('DOMContentLoaded', function () {
   function generateTimeSlots() {
     const slots = [];
     for (let hour = startHour; hour < endHour; hour++) {
-      for (let min = 0; min < 60; min += 15) {
+      for (let min = 0; min < 60; min += 20) {
         slots.push(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
       }
     }
     return slots;
   }
 
-  function populateTimeSlotSelect(selectId, reserved = []) {
+  function populateTimeSlotSelect(selectId, availableTimes = []) {
     const select = document.getElementById(selectId);
     select.innerHTML = '';
-    generateTimeSlots().forEach(time => {
-      if (!reserved.includes(time)) {
-        const option = document.createElement('option');
-        option.value = time;
-        option.textContent = time;
-        select.appendChild(option);
-      }
+    availableTimes.forEach(time => {
+      const option = document.createElement('option');
+      option.value = time;
+      option.textContent = time;
+      select.appendChild(option);
     });
   }
 
   function fetchReservedSlots(date, callback) {
-    fetch(`/api/timeslots/available?date=${date}`)
+    fetch('http://localhost:8000/api/timeslots/available?date=' + date)
       .then(res => res.json())
       .then(data => callback(data))
       .catch(() => callback([]));
   }
 
-  document.getElementById('reservation-date').addEventListener('change', function () {
+  document.getElementById('reservation_date').addEventListener('change', function () {
     const date = this.value;
-    fetchReservedSlots(date, reserved => {
-      populateTimeSlotSelect('arrival-time-slot', reserved);
-      populateTimeSlotSelect('departure-time-slot', reserved);
-      document.getElementById('slot-section').style.display = 'block';
+    // You probably want to fetch reserved slots for the selected date and update time slots
+    fetchReservedSlots(date, function(reservedSlots) {
+      populateTimeSlotSelect('arrival-time-slot', reservedSlots);
+      populateTimeSlotSelect('departure-time-slot', reservedSlots);
     });
   });
 
   window.reserveSlot = function () {
-    const reservationDate = document.getElementById('reservation-date').value;
+    const reservationDate = document.getElementById('reservation_date').value;
     const arrivalTime = document.getElementById('arrival-time-slot').value;
     const departureTime = document.getElementById('departure-time-slot').value;
     const registration = document.getElementById('registration-input').value.trim();
     const country = document.getElementById('country-input').value.trim();
-    const vehicleType = document.getElementById('vehicle-type-select').value;
-    const email = document.getElementById('email-input').value.trim();
-    const company = document.getElementById('company-input').value.trim();
-    const disclaimerChecked = document.getElementById('disclaimer-checkbox').checked;
-    const disclaimerError = document.getElementById('disclaimer-error');
+    const company = document.getElementById('company_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const vehicleType = document.getElementById('vehicle_type_id').value;
+    const agreementChecked = document.getElementById('user_agreement').checked;
+    const agreementError = document.getElementById('agreement-error');
 
     if (!reservationDate || !arrivalTime || !departureTime) {
       alert('Please select a date and both arrival and departure times.');
@@ -114,23 +112,23 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('Please enter the country of origin.');
       return;
     }
-    if (!vehicleType) {
-      alert('Please select a vehicle category.');
-      return;
-    }
-    if (!email) {
-      alert('Please enter your email address.');
-      return;
-    }
     if (!company) {
       alert('Please enter the company name.');
       return;
     }
-    if (!disclaimerChecked) {
-      disclaimerError.style.display = 'inline';
+    if (!email) {
+      alert('Please enter your email.');
+      return;
+    }
+    if (!vehicleType) {
+      alert('Please select a vehicle category.');
+      return;
+    }
+    if (!agreementChecked) {
+      agreementError.style.display = 'inline';
       return;
     } else {
-      disclaimerError.style.display = 'none';
+      agreementError.style.display = 'none';
     }
 
     fetch('/api/reservations', {
@@ -142,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         departure_time: departureTime,
         registration,
         country,
-        company, // <-- add this line
+        company,
         email,
         vehicle_type_id: vehicleType
       })
@@ -156,4 +154,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
   };
-});
+
+  document.getElementById('show-terms').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('terms-modal').style.display = 'block';
+  });
+  document.getElementById('close-terms').addEventListener('click', function() {
+    document.getElementById('terms-modal').style.display = 'none';
+  });
+})

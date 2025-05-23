@@ -1,6 +1,7 @@
 body {
   font-family: Arial, sans-serif;
-  padding: 20px;
+  padding: 10px;
+
 }
 
 #logo {
@@ -36,34 +37,5 @@ body {
   background-color: #ccffcc;
 }
 
-/* Force compact fields everywhere */
-input[type="date"],
-input[type="text"],
-input[type="email"],
-select {
-  padding: 2px 4px !important;
-  margin: 2px 0 !important;
-  font-size: 12px !important;
-  width: 90% !important;
-  box-sizing: border-box !important;
-  min-height: 22px !important;
-}
 
-/* Make all buttons compact */
-button,
-input[type="submit"] {
-  width: 100% !important;
-  background-color: #9c1420 !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  min-height: 22px !important;
-  padding: 2px 4px !important;
-  font-size: 12px !important;
-}
 
-button:hover,
-input[type="submit"]:hover {
-  background-color: #7a1018 !important;
-}
